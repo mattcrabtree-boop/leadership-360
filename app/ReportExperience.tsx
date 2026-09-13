@@ -156,6 +156,7 @@ function ChapterFooter({
 }
 
 export function ReportExperience({ report }: { report: ExperienceReport }) {
+  const illustrative = report.reportType === "illustrative";
   const [activeChapter, setActiveChapter] = useState<Chapter>("start");
   const [resultLens, setResultLens] = useState<ResultLens>("profile");
   const [activeThemeId, setActiveThemeId] = useState(report.themes[0]?.id ?? "");
@@ -238,7 +239,7 @@ export function ReportExperience({ report }: { report: ExperienceReport }) {
               <p className="welcome-intro">A guided view of how your leadership is experienced—designed to move from evidence to one meaningful next step.</p>
               <div className="welcome-entry">
                 <button className="primary-button" type="button" onClick={() => goToChapter("results")}><span>Begin my review</span><i>→</i></button>
-                <p className="prototype-note">Illustrative data · Private report prototype</p>
+                <p className="prototype-note">{illustrative ? "Illustrative data · Private report prototype" : "Confidential Leadership 360 report"}</p>
               </div>
             </div>
           </div>
@@ -407,7 +408,7 @@ export function ReportExperience({ report }: { report: ExperienceReport }) {
                     </div>
                     <div className={`theme-lens${themeLens === "comments" ? " is-active" : ""}`} id={`${theme.id}-lens-comments-panel`} role="tabpanel" aria-labelledby={`${theme.id}-lens-comments-tab`}>
                       <div className="theme-comments">
-                        <div className="quote-lead"><p className="eyebrow">In their words</p><blockquote>{themeComments[0]?.comment ?? "No comments were provided for this theme."}</blockquote></div>
+                        <div className="quote-lead"><p className="eyebrow">In their words</p><blockquote>{themeComments[0]?.comment ?? report.comments.privacyNote ?? "No comments were provided for this theme."}</blockquote></div>
                         <div className="quote-stack">{themeComments.map(({ questionId, comment }, index) => <blockquote key={`${questionId}-${index}`}><span>{questionId}</span><p>{comment}</p></blockquote>)}</div>
                       </div>
                     </div>
@@ -425,11 +426,11 @@ export function ReportExperience({ report }: { report: ExperienceReport }) {
             <div><p className="eyebrow">Written feedback</p><h2 id="feedback-title">Hear the themes behind the scores</h2></div>
             <p>Repeated ideas are summarised first. The verbatim comments remain available, but only one perspective is shown at a time.</p>
           </div>
-          <div className="voice-overview">
+          {report.comments.status === "withheld" ? <p className="withheld-panel">{report.comments.privacyNote}</p> : <div className="voice-overview">
             <article><p className="eyebrow">Strengths themes</p>{repeatedThemes.strengths.map(([label, count]) => <div key={label}><span>{label}</span><strong>{count}</strong></div>)}</article>
             <blockquote>“{report.comments.strengths[0]}”</blockquote>
             <article><p className="eyebrow eyebrow-navy">Development themes</p>{repeatedThemes.development.map(([label, count]) => <div key={label}><span>{label}</span><strong>{count}</strong></div>)}</article>
-          </div>
+          </div>}
           <SegmentedControl<VoiceLens>
             idBase="voices-lens"
             label="Written feedback view"
@@ -473,7 +474,7 @@ export function ReportExperience({ report }: { report: ExperienceReport }) {
           <ChapterFooter previous="voices" onNavigate={goToChapter} />
         </section>
 
-        <footer><Image src="/site-logo.svg" alt="" width={220} height={45} /><p><strong>Confidential</strong><span>Leadership 360 feedback · illustrative local prototype</span></p><a href="#welcome" onClick={(event) => navClick(event, "start", "welcome")}>Back to start</a></footer>
+        <footer><Image src="/site-logo.svg" alt="" width={220} height={45} /><p><strong>Confidential</strong><span>{illustrative ? "Leadership 360 feedback · illustrative local prototype" : "Leadership 360 feedback report"}</span></p><a href="#welcome" onClick={(event) => navClick(event, "start", "welcome")}>Back to start</a></footer>
       </main>
     </div>
   );

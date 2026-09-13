@@ -46,9 +46,9 @@ test("two protected singletons pool together without leaking either component", 
     response("M01", "p1", "peers", { Q03: 3 }),
     response("M01", "s1", "senior", { Q03: 4 }),
   ], ["Q03"]);
-  assert.deepEqual(result.cohorts.map((cohort) => cohort.key), ["senior", "combined"]);
+  assert.deepEqual(result.cohorts.map((cohort) => cohort.key), ["combined"]);
   assert.equal(result.cohorts.find((cohort) => cohort.key === "combined")?.score, 4);
-  assert.deepEqual(result.range, { low: 4, high: 4 });
+  assert.equal(result.range, null);
 });
 
 test("an unpoolable singleton withholds component detail and prevents subtraction", () => {
@@ -80,6 +80,18 @@ test("comment shuffling is stable per report, different between reports, and str
   assert.equal(first.some((comment) => /R[1-5]/.test(comment)), false);
 });
 
+test("written feedback is withheld below the three-colleague confidentiality threshold", () => {
+  const report = buildSeparatedReports([
+    { id: "M01", name: "One", jobTitle: "Role", reportPeriod: "May" },
+  ], [
+    response("M01", "R1", "manager", { Q03: 4 }, { strengths: "Single response" }),
+    response("M01", "R2", "self", { Q03: 5 }, { strengths: "Self response" }),
+  ]).M01;
+  assert.equal(report.comments.status, "withheld");
+  assert.deepEqual(report.comments.strengths, []);
+  assert.doesNotMatch(JSON.stringify(report), /Single response|Self response/);
+});
+
 test("separated reports contain only their manager's scores and comments", () => {
   const managers = [
     { id: "M01", name: "One", jobTitle: "Role", reportPeriod: "May" },
@@ -88,8 +100,10 @@ test("separated reports contain only their manager's scores and comments", () =>
   const reports = buildSeparatedReports(managers, [
     response("M01", "R1", "manager", { Q03: 5 }, { strengths: "M01_ONLY_SENTINEL" }),
     response("M01", "R2", "senior", { Q03: 4 }),
-    response("M02", "R3", "manager", { Q03: 2 }, { strengths: "M02_ONLY_SENTINEL" }),
-    response("M02", "R4", "senior", { Q03: 3 }),
+    response("M01", "R3", "senior", { Q03: 4 }),
+    response("M02", "R4", "manager", { Q03: 2 }, { strengths: "M02_ONLY_SENTINEL" }),
+    response("M02", "R5", "senior", { Q03: 3 }),
+    response("M02", "R6", "senior", { Q03: 3 }),
   ]);
   const first = JSON.stringify(reports.M01);
   const second = JSON.stringify(reports.M02);

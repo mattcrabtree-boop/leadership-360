@@ -33,3 +33,14 @@ The action-plan fields are intentionally browser-only and are never persisted.
 ## Production access model
 
 The live-site foundation uses Supabase email magic links. A manager authenticates with their invited email address, then database row-level security permits access only to that manager's published disclosure-safe report snapshot. Raw response imports belong in the private schema and are not available through the browser API. Copy `.env.example` to `.env.local` for local configuration; never commit service-role keys or source workbooks.
+
+## Preparing a live survey export
+
+Keep the source workbook and generated files in the ignored `work/` folder. The preparation step maps the approved survey export's 16 rating questions and comments into isolated report payloads:
+
+```sh
+python3 scripts/prepare_leadership_360_import.py /path/to/export.xlsx work/leadership-360-import.json
+node --experimental-strip-types scripts/build-leadership-360-reports.ts work/leadership-360-import.json work/leadership-360-report-payloads.json
+```
+
+Reports require at least three colleague responses. Direct-report, peer, senior and junior groups below three are pooled before display; written feedback is withheld below the same threshold. Manager feedback remains a distinct, expected perspective. The generated readiness list identifies any reports that should be held for follow-up before access is provisioned.

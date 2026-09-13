@@ -1,6 +1,6 @@
 export const PRIVACY_CONFIG = {
-  minProtectedCohortSize: 2,
-  protectedCohorts: ["direct", "peers", "junior"],
+  minProtectedCohortSize: 3,
+  protectedCohorts: ["direct", "peers", "senior", "junior"],
 } as const;
 
 export const COHORT_LABELS = {
@@ -54,6 +54,13 @@ export type SafeScope = {
   range: { low: number; high: number } | null;
   rangeNote: string;
   privacyNote: string | null;
+};
+
+export type ReportBuildOptions = {
+  privacy?: { minProtectedCohortSize: number; protectedCohorts: readonly string[] };
+  redactionTerms?: readonly string[];
+  reportType?: "illustrative" | "live";
+  generatedFrom?: string;
 };
 
 type InternalMetric = {
@@ -357,13 +364,11 @@ function collectComment(
 export function buildManagerReport(
   manager: ManagerInput,
   allResponses: ResponseInput[],
-  options: {
-    privacy?: { minProtectedCohortSize: number; protectedCohorts: readonly string[] };
-    redactionTerms?: readonly string[];
-  } = {},
+  options: ReportBuildOptions = {},
 ) {
   const privacy = options.privacy ?? PRIVACY_CONFIG;
   const redactionTerms = options.redactionTerms ?? [];
+  const reportType = options.reportType ?? "illustrative";
   const responses = allResponses.filter((row) => row.managerId === manager.id);
   const colleagueResponses = responses.filter(
     (row) => normaliseRelationship(row.relationship) !== "self",
@@ -384,39 +389,36 @@ export function buildManagerReport(
     .map((question) => ({ id: question.id, text: question.text, score: question.scope.allColleagues.score as number }))
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 
+  const commentsShown = colleagueResponses.length >= privacy.minProtectedCohortSize;
   const byQuestion = Object.fromEntries(
     QUESTIONS.map((question) => [
       question.id,
-      stableCommentShuffle(
-        collectComment(colleagueResponses, (row) => row.questionComments?.[question.id]),
-        `${manager.id}|question|${question.id}`,
-        redactionTerms,
-      ),
+      commentsShown
+        ? stableCommentShuffle(
+          collectComment(colleagueResponses, (row) => row.questionComments?.[question.id]),
+          `${manager.id}|question|${question.id}`,
+          redactionTerms,
+        )
+        : [],
     ]),
   );
 
   const openFeedback = {
-    strengths: stableCommentShuffle(
-      collectComment(colleagueResponses, (row) => row.strengths),
-      `${manager.id}|open|strengths`,
-      redactionTerms,
-    ),
-    development: stableCommentShuffle(
-      collectComment(colleagueResponses, (row) => row.development),
-      `${manager.id}|open|development`,
-      redactionTerms,
-    ),
-    other: stableCommentShuffle(
-      collectComment(colleagueResponses, (row) => row.otherFeedback),
-      `${manager.id}|open|other`,
-      redactionTerms,
-    ),
+    strengths: commentsShown
+      ? stableCommentShuffle(collectComment(colleagueResponses, (row) => row.strengths), `${manager.id}|open|strengths`, redactionTerms)
+      : [],
+    development: commentsShown
+      ? stableCommentShuffle(collectComment(colleagueResponses, (row) => row.development), `${manager.id}|open|development`, redactionTerms)
+      : [],
+    other: commentsShown
+      ? stableCommentShuffle(collectComment(colleagueResponses, (row) => row.otherFeedback), `${manager.id}|open|other`, redactionTerms)
+      : [],
   };
 
   return {
     manager: { ...manager },
-    reportType: "illustrative",
-    generatedFrom: "disclosure-safe synthetic fixture",
+    reportType,
+    generatedFrom: options.generatedFrom ?? (reportType === "illustrative" ? "disclosure-safe synthetic fixture" : "validated Leadership 360 survey export"),
     responseSummary: {
       total: responses.length,
       colleagues: colleagueResponses.length,
@@ -428,7 +430,12 @@ export function buildManagerReport(
       strengths: ranked.slice(0, 5),
       development: [...ranked].reverse().slice(0, 5),
     },
-    comments: { byQuestion, ...openFeedback },
+    comments: {
+      status: commentsShown ? "shown" : "withheld",
+      privacyNote: commentsShown ? null : "Written feedback is withheld because fewer than three colleague responses were received.",
+      byQuestion,
+      ...openFeedback,
+    },
   };
 }
 
