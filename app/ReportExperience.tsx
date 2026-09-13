@@ -251,14 +251,7 @@ export function ReportExperience({ report }: { report: ExperienceReport }) {
             </div>
             <div className="signal-grid">
               <article className="signal-card signal-strength"><span>Signature strength</span><strong>{highest?.score.toFixed(1)}</strong><h3>{highest?.text}</h3><p>This is the clearest positive signal in your colleague feedback.</p></article>
-              <article className="signal-card signal-tension">
-                <span>Different perspectives</span>
-                <strong>{largestGap ? `${Math.abs(largestGap.gap).toFixed(1)} points ${largestGap.gap > 0 ? "higher" : "lower"}` : "—"}</strong>
-                <h3>{largestGap?.text}</h3>
-                <p>{largestGap
-                  ? `${largestGap.gap > 0 ? "Colleagues rated this higher than you did" : "You rated this higher than colleagues did"}: colleagues ${formatScore(largestGap.scope.allColleagues.score)}; self ${formatScore(largestGap.scope.self.score)}.`
-                  : "No self-and-colleague comparison is available for this report."}</p>
-              </article>
+              <article className="signal-card signal-tension"><span>Interesting tension</span><strong>{largestGap ? `${largestGap.gap > 0 ? "+" : ""}${largestGap.gap.toFixed(1)}` : "—"}</strong><h3>{largestGap?.text}</h3><p>{largestGap && largestGap.gap > 0 ? "Colleagues see more strength here than you gave yourself credit for." : "Your own view is more positive than the colleague picture."}</p></article>
               <article className="signal-card signal-focus"><span>Focus opportunity</span><strong>{focus?.score.toFixed(1)}</strong><h3>{focus?.text}</h3><p>This is the strongest candidate for deeper exploration—not simply the lowest number.</p></article>
             </div>
           <details className="method-note">
