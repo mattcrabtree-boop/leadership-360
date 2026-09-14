@@ -37,7 +37,7 @@ let sequence = 0;
 export const illustrativeResponses: ResponseInput[] = cohorts.flatMap(([cohort, count, offset]) =>
   Array.from({ length: count }, (_, personIndex) => {
     sequence += 1;
-    const scores = Object.fromEntries(
+    const scores: Record<string, number | null> = Object.fromEntries(
       QUESTIONS.map((question, questionIndex) => [
         question.id,
         cohort === "self"
