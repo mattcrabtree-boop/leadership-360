@@ -14,10 +14,10 @@ export function getSupabaseBrowserClient() {
       storage: window.sessionStorage,
       persistSession: true,
       autoRefreshToken: true,
-        // The callback page handles both PKCE codes and implicit-flow tokens.
-        // Keeping this off avoids a race between Supabase's automatic URL parsing
-        // and the explicit, user-facing callback flow.
-        detectSessionInUrl: false,
+      // The callback page handles both PKCE codes and implicit-flow tokens.
+      // Keeping this off avoids a race between Supabase's automatic URL parsing
+      // and the explicit, user-facing callback flow.
+      detectSessionInUrl: false,
     },
   });
   return client;
