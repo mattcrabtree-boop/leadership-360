@@ -11,6 +11,7 @@
     "start": "next start",
     "test": "node --experimental-strip-types --test tests/leadership360.test.mjs && npm run build && node --test tests/rendered-html.test.mjs",
     "test:unit": "node --experimental-strip-types --test tests/leadership360.test.mjs",
+    "reports:publish": "node --experimental-strip-types scripts/publish-leadership-360-reports.ts",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

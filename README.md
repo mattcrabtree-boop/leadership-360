@@ -44,3 +44,13 @@ node --experimental-strip-types scripts/build-leadership-360-reports.ts work/lea
 ```
 
 Reports require at least three colleague responses. Direct-report, peer, senior and junior groups below three are pooled before display; written feedback is withheld below the same threshold. Manager feedback remains a distinct, expected perspective. The generated readiness list identifies any reports that should be held for follow-up before access is provisioned.
+
+## Publishing ready reports
+
+After setting up Supabase Auth and custom SMTP, add `SUPABASE_SERVICE_ROLE_KEY` to the ignored root `.env.local` file. The publisher is safe by default: it validates files only and makes no network calls. Use `--publish` to provision access and publish ready reports without email; add `--send-links` only after approving the final recipient list.
+
+```sh
+npm run reports:publish
+npm run reports:publish -- --publish
+npm run reports:publish -- --publish --send-links
+```
