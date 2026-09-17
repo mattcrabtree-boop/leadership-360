@@ -8,7 +8,12 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const next = new URLSearchParams(window.location.search).get("next") || "/";
-    getSupabaseBrowserClient().auth.getSession().then(({ data, error }) => {
+    const supabase = getSupabaseBrowserClient();
+    const code = new URLSearchParams(window.location.search).get("code");
+    const session = code
+      ? supabase.auth.exchangeCodeForSession(code)
+      : supabase.auth.getSession();
+    session.then(({ data, error }) => {
       if (error || !data.session) {
         setMessage("This sign-in link is invalid or has expired. Please request a new link.");
         return;
