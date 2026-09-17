@@ -16,7 +16,7 @@ export default function AuthCallbackPage() {
     const session = code
       ? supabase.auth.exchangeCodeForSession(code)
       : accessToken && refreshToken
-        ? supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        ? restoreImplicitSession(accessToken, refreshToken, fragment, supabase)
       : supabase.auth.getSession();
     session.then(({ data, error }) => {
       if (error || !data.session) {
@@ -29,4 +29,46 @@ export default function AuthCallbackPage() {
   }, []);
 
   return <main className="auth-page"><section className="auth-card"><p>{message}</p></section></main>;
+}
+
+async function restoreImplicitSession(
+  accessToken: string,
+  refreshToken: string,
+  fragment: URLSearchParams,
+  supabase: ReturnType<typeof getSupabaseBrowserClient>,
+) {
+  try {
+    const payloadPart = accessToken.split(".")[1];
+    if (!payloadPart) throw new Error("Missing token payload");
+    const payload = JSON.parse(
+      decodeURIComponent(
+        atob(payloadPart.replace(/-/g, "+").replace(/_/g, "/"))
+          .split("")
+          .map((character) => `%${(`00${character.charCodeAt(0).toString(16)}`).slice(-2)}`)
+          .join(""),
+      ),
+    );
+    const expiresAt = Number(fragment.get("expires_at") ?? payload.exp);
+    if (!payload.sub || !expiresAt) throw new Error("Invalid token payload");
+
+    window.sessionStorage.setItem("leadership-360-auth", JSON.stringify({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_at: expiresAt,
+      expires_in: Number(fragment.get("expires_in") ?? Math.max(0, expiresAt - Date.now() / 1000)),
+      token_type: fragment.get("token_type") ?? "bearer",
+      user: {
+        id: payload.sub,
+        aud: payload.aud ?? "authenticated",
+        role: payload.role ?? "authenticated",
+        email: payload.email,
+        app_metadata: payload.app_metadata ?? {},
+        user_metadata: payload.user_metadata ?? {},
+      },
+    }));
+
+    return supabase.auth.getSession();
+  } catch {
+    return { data: { session: null }, error: new Error("Invalid sign-in token") };
+  }
 }

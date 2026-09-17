@@ -12,6 +12,7 @@ export function getSupabaseBrowserClient() {
   client = createClient(url, key, {
     auth: {
       storage: window.sessionStorage,
+      storageKey: "leadership-360-auth",
       persistSession: true,
       autoRefreshToken: true,
       // The callback page handles both PKCE codes and implicit-flow tokens.
