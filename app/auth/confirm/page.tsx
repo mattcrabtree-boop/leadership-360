@@ -38,7 +38,12 @@ export default function ConfirmMagicLinkPage() {
     window.location.replace(next);
   }
 
-  return <main className="auth-page"><section className="auth-card"><p className="eyebrow">Leadership 360</p><h1>Your report is ready</h1><p>Enter the security code in your email to open your private feedback report.</p><form onSubmit={continueToReport}><label className="auth-label" htmlFor="email">Email address</label><input className="auth-input" id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /><label className="auth-label" htmlFor="security-code">Security code</label><input className="auth-input" id="security-code" type="text" inputMode="numeric" autoComplete="one-time-code" value={token} onChange={(event) => setToken(event.target.value)} required /><button className="primary-button" type="submit" disabled={status === "checking"}>{status === "checking" ? "Opening report…" : "Open my report"}</button></form>{message ? <p className="auth-message auth-message-error" role="status">{message}</p> : null}</section></main>;
+  function requestNewCode() {
+    const { next } = readConfirmationDetails();
+    window.location.assign(`/sign-in?next=${encodeURIComponent(next)}`);
+  }
+
+  return <main className="auth-page"><section className="auth-card"><p className="eyebrow">Leadership 360</p><h1>Your report is ready</h1><p>Enter the security code in your email to open your private feedback report.</p><form onSubmit={continueToReport}><label className="auth-label" htmlFor="email">Email address</label><input className="auth-input" id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /><label className="auth-label" htmlFor="security-code">Security code</label><input className="auth-input" id="security-code" type="text" inputMode="numeric" autoComplete="one-time-code" value={token} onChange={(event) => setToken(event.target.value)} required /><button className="primary-button" type="submit" disabled={status === "checking"}>{status === "checking" ? "Opening report…" : "Open my report"}</button></form>{message ? <><p className="auth-message auth-message-error" role="status">{message}</p><button className="auth-secondary-button" type="button" onClick={requestNewCode}>Email me a fresh code</button></> : null}</section></main>;
 }
 
 function readConfirmationDetails() {

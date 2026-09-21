@@ -57,6 +57,7 @@ h1, h2, h3, h4, h5, p { margin-top: 0; }
 .auth-card input:focus { outline: 3px solid rgba(0,139,90,.2); outline-offset: 1px; border-color: var(--green); }
 .auth-card .primary-button { width: 100%; }
 .auth-card .primary-button:disabled { cursor: wait; opacity: .7; }
+.auth-secondary-button { margin-top: 12px; border: 0; padding: 0; background: transparent; color: var(--green-dark); font: inherit; font-size: .9rem; font-weight: 700; text-decoration: underline; cursor: pointer; }
 .auth-message { margin: 20px 0 0; padding: 12px 14px; background: var(--mint); color: var(--green-dark); font-size: .84rem; }
 .auth-message-error { background: #fdf0ea; color: var(--amber); }
 .report-sign-out { position: fixed; z-index: 40; top: 14px; right: 16px; border: 1px solid var(--line); border-radius: 3px; padding: 8px 11px; background: #fff; color: var(--navy); cursor: pointer; font-size: .75rem; font-weight: 700; box-shadow: 0 5px 18px rgba(18,42,62,.12); }
